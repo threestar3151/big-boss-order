@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>GS25 4부문 실적 대시보드</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--bg:#0d1117;--card:#161b22;--c2:#1c2330;--bd:#30363d;--acc:#4fa3e0;--g:#56d4a0;--o:#f0a04b;--r:#e05c7a;--p:#a78bfa;--tx:#e6edf3;--mu:#8b949e;--y24:#4fa3e0;--y25:#56d4a0;--y26:#f0a04b;--rad:12px;--fnt:'Apple SD Gothic Neo','Noto Sans KR',system-ui,sans-serif;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:var(--fnt);min-height:100vh;}
+.hdr{background:linear-gradient(135deg,#0d1117,#161b22);border-bottom:1px solid var(--bd);padding:14px 20px 0;position:sticky;top:0;z-index:300;}
+.hdr-top{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px;}
+.logo{display:flex;align-items:center;gap:10px;}
+.badge{background:var(--o);color:#fff;font-weight:800;padding:4px 9px;border-radius:7px;font-size:12px;}
+.badge2{background:var(--card);border:1px solid var(--bd);color:var(--o);font-weight:700;padding:3px 9px;border-radius:6px;font-size:11px;margin-left:4px;}
+.ttl{font-size:16px;font-weight:700;}.sub{font-size:11px;color:var(--mu);margin-top:1px;}
+.pbadge{background:var(--c2);border:1px solid var(--bd);padding:4px 12px;border-radius:18px;font-size:11px;color:var(--mu);}
+.tabs{display:flex;gap:0;overflow-x:auto;scrollbar-width:none;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{padding:9px 16px;background:none;border:none;color:var(--mu);cursor:pointer;font-size:13px;font-weight:600;border-bottom:3px solid transparent;white-space:nowrap;font-family:var(--fnt);transition:.15s;}
+.tab:hover{color:var(--tx);}.tab.on{color:var(--o);border-bottom-color:var(--o);}
+/* 전체개요 탭은 파란색 구분 */
+.tab.all-tab.on{color:var(--acc);border-bottom-color:var(--acc);}
+.tab-sep{width:1px;background:var(--bd);margin:6px 4px;flex-shrink:0;}
+.wrap{padding:18px 20px;max-width:1440px;margin:0 auto;}
+.pnl{display:none;}.pnl.on{display:block;}
+.stl{font-size:17px;font-weight:700;margin-bottom:3px;}.ssub{font-size:11px;color:var(--mu);margin-bottom:16px;}
+/* 전체개요 섹션 구분선 */
+.sec-divider{border:none;border-top:1px solid var(--bd);margin:24px 0;}
+.sec-label{font-size:13px;font-weight:700;color:var(--mu);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.sec-label::after{content:'';flex:1;height:1px;background:var(--bd);}
+.kgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:20px;}
+.kcard{background:var(--c2);border:1px solid var(--bd);border-radius:var(--rad);padding:16px;position:relative;overflow:hidden;}
+.kcard::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--kc,var(--o));}
+.klb{font-size:10px;color:var(--mu);text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px;}
+.kv{font-size:22px;font-weight:800;line-height:1.1;}.ku{font-size:10px;color:var(--mu);margin-left:2px;}
+.kd{font-size:11px;font-weight:700;margin-top:6px;}.kd.up{color:var(--g);}.kd.dn{color:var(--r);}
+.krow{display:flex;gap:4px;margin-top:7px;}
+.ky{flex:1;background:rgba(255,255,255,.04);border-radius:5px;padding:4px 2px;text-align:center;}
+.kyl{font-size:9px;color:var(--mu);}.kyv{font-size:11px;font-weight:700;margin-top:1px;}
+.cgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-bottom:18px;}
+.cc{background:var(--c2);border:1px solid var(--bd);border-radius:var(--rad);padding:16px;}
+.cc.full{grid-column:1/-1;}
+.ctl{font-size:13px;font-weight:700;margin-bottom:2px;}.csub{font-size:10px;color:var(--mu);margin-bottom:10px;}
+.leg{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:8px;}
+.li{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--mu);}
+.ld{width:8px;height:8px;border-radius:50%;}
+.fb{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px;align-items:center;}
+.fl{font-size:11px;color:var(--mu);white-space:nowrap;}
+.fbtn{padding:5px 12px;background:var(--c2);border:1px solid var(--bd);border-radius:18px;color:var(--mu);cursor:pointer;font-size:11px;font-weight:600;font-family:var(--fnt);transition:.15s;}
+.fbtn:hover{border-color:var(--o);color:var(--o);}.fbtn.on{background:var(--o);border-color:var(--o);color:#fff;}
+.mbtn{padding:5px 12px;background:var(--c2);border:1px solid var(--bd);border-radius:7px;color:var(--mu);cursor:pointer;font-size:11px;font-weight:600;font-family:var(--fnt);transition:.15s;}
+.mbtn.on{background:rgba(240,160,75,.18);border-color:var(--o);color:var(--o);}
+.tw{overflow-x:auto;border-radius:var(--rad);border:1px solid var(--bd);margin-top:12px;}
+table{width:100%;border-collapse:collapse;min-width:480px;}
+thead tr{background:#1a2030;}
+th{padding:9px 13px;text-align:left;font-size:10px;color:var(--mu);text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--bd);white-space:nowrap;}
+td{padding:9px 13px;font-size:12px;border-bottom:1px solid rgba(48,54,61,.4);}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(255,255,255,.02);}
+.nr{text-align:right;font-weight:600;font-variant-numeric:tabular-nums;}
+.t24{color:var(--y24);}.t25{color:var(--y25);}.t26{color:var(--y26);}
+.gp{color:var(--g);font-weight:700;font-size:11px;}.gn{color:var(--r);font-weight:700;font-size:11px;}
+.map-outer{background:var(--c2);border:1px solid var(--bd);border-radius:var(--rad);overflow:hidden;}
+.map-ctrl{padding:12px 16px;border-bottom:1px solid var(--bd);display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+.map-body{display:grid;grid-template-columns:1fr 340px;}
+@media(max-width:900px){.map-body{grid-template-columns:1fr;}}
+.map-svg-wrap{position:relative;background:#080d14;min-height:640px;display:flex;align-items:stretch;}
+#kmap{width:100%;height:100%;min-height:640px;}
+.mtt{position:absolute;background:rgba(22,27,34,.97);border:1px solid var(--bd);border-radius:10px;padding:12px 15px;pointer-events:none;display:none;z-index:999;min-width:210px;box-shadow:0 8px 30px rgba(0,0,0,.6);}
+.tt-nm{font-size:13px;font-weight:700;margin-bottom:8px;}
+.tt-r{display:flex;justify-content:space-between;gap:14px;margin-bottom:4px;font-size:11px;}
+.tt-l{color:var(--mu);}.tt-v{font-weight:700;}
+.mleg{position:absolute;bottom:12px;left:12px;background:rgba(13,17,23,.9);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;font-size:10px;}
+.mlt{color:var(--mu);font-weight:600;margin-bottom:6px;}
+.mlrow{display:flex;align-items:center;gap:6px;margin-bottom:3px;color:var(--mu);}
+.mlb{width:13px;height:13px;border-radius:3px;}
+.map-side{background:var(--card);border-left:1px solid var(--bd);overflow-y:auto;max-height:640px;}
+.ms-hdr{padding:14px 16px;border-bottom:1px solid var(--bd);font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px;}
+.ms-body{padding:12px;}
+.ms-card{background:var(--c2);border-radius:8px;padding:12px;margin-bottom:10px;}
+.ms-nm{font-size:12px;font-weight:700;color:var(--o);margin-bottom:10px;}
+.ms-met{margin-bottom:10px;}
+.ms-ml{font-size:10px;color:var(--mu);margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;}
+.ms-row{display:flex;gap:5px;}
+.ms-item{flex:1;background:rgba(255,255,255,.05);border-radius:6px;padding:7px 5px;text-align:center;}
+.ms-il{font-size:9px;color:var(--mu);}.ms-iv{font-size:12px;font-weight:700;margin-top:2px;}
+.ms-gbar{height:4px;border-radius:2px;margin-top:5px;background:rgba(255,255,255,.1);overflow:hidden;}
+.ms-gfill{height:100%;border-radius:2px;transition:width .4s;}
+.ms-tip{font-size:11px;color:var(--mu);line-height:1.6;margin-top:8px;}
+.empty-hint{color:var(--mu);font-size:12px;padding:30px 16px;text-align:center;line-height:1.8;}
+.igrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-bottom:20px;}
+.ic{background:var(--c2);border:1px solid var(--bd);border-radius:var(--rad);padding:14px;display:flex;gap:10px;}
+.ii{font-size:18px;flex-shrink:0;}.itl{font-size:12px;font-weight:700;margin-bottom:3px;}.itx{font-size:11px;color:var(--mu);line-height:1.55;}
+@media(max-width:700px){.kgrid{grid-template-columns:repeat(2,1fr);}.cgrid{grid-template-columns:1fr;}.kv{font-size:18px;}.wrap{padding:12px 14px;}.tab{padding:8px 12px;font-size:12px;}}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div class="hdr-top">
+    <div class="logo">
+      <div class="badge">GS25</div><div class="badge2">4부문</div>
+      <div style="margin-left:6px"><div class="ttl">4부문 실적 대시보드</div><div class="sub">충남·대전·세종·전북·광주·전남 · 1~5월 누계 2024–2026</div></div>
+    </div>
+    <div class="pbadge">📅 1월 ~ 5월 누계</div>
+  </div>
+  <div class="tabs">
+    <button class="tab all-tab on" onclick="go('gall',this)">🌐 전체 개요</button>
+    <div class="tab-sep"></div>
+    <button class="tab" onclick="go('ov',this)">📊 4부문 개요</button>
+    <button class="tab" onclick="go('re',this)">📍 지역별</button>
+    <button class="tab" onclick="go('mo',this)">📅 월별 트렌드</button>
+    <button class="tab" onclick="go('mp',this)">🗺️ 행정구역 지도</button>
+    <button class="tab" onclick="go('ins',this)">💡 인사이트</button>
+  </div>
+</div>
+<div class="wrap">
+
+<!-- ════ 전체 개요 (6부문) ════ -->
+<div class="pnl on" id="pnl-gall">
+  <div class="stl">🌐 전체 실적 개요</div>
+  <div class="ssub">6개 부문 통합 · 1~5월 누계 2024–2026</div>
+  <div class="kgrid" id="kall"></div>
+  <div class="sec-label">부문별 비교</div>
+  <div class="cgrid">
+    <div class="cc full"><div class="ctl">부문별 고객수 (만 명)</div><div class="csub">연도별 그룹 · 수치 표기</div>
+      <div class="leg"><div class="li"><div class="ld" style="background:var(--y24)"></div>2024</div><div class="li"><div class="ld" style="background:var(--y25)"></div>2025</div><div class="li"><div class="ld" style="background:var(--y26)"></div>2026</div></div>
+      <div style="position:relative;height:250px"><canvas id="c-all-c"></canvas></div></div>
+    <div class="cc"><div class="ctl">부문별 매출액 (억 원)</div><div style="position:relative;height:220px"><canvas id="c-all-m"></canvas></div></div>
+    <div class="cc"><div class="ctl">부문별 일매출 (백만 원)</div><div style="position:relative;height:220px"><canvas id="c-all-d"></canvas></div></div>
+    <div class="cc"><div class="ctl">부문별 객단가 (원)</div><div style="position:relative;height:220px"><canvas id="c-all-u"></canvas></div></div>
+    <div class="cc"><div class="ctl">부문별 성장률 (%, 24→26)</div><div style="position:relative;height:220px"><canvas id="c-all-g"></canvas></div></div>
+  </div>
+  <div class="sec-label">월별 전체 추이</div>
+  <div class="cgrid">
+    <div class="cc full"><div class="ctl">전체 월별 고객수 (만 명)</div><div class="csub">2024.01~2026.05 · 파란=24 / 초록=25 / 주황=26 구간</div>
+      <div style="position:relative;height:230px"><canvas id="c-all-mo"></canvas></div></div>
+    <div class="cc full"><div class="ctl">동일월 YoY 비교 (전체 고객수)</div>
+      <div class="leg"><div class="li"><div class="ld" style="background:var(--y24)"></div>2024</div><div class="li"><div class="ld" style="background:var(--y25)"></div>2025</div><div class="li"><div class="ld" style="background:var(--y26)"></div>2026</div></div>
+      <div style="position:relative;height:220px"><canvas id="c-all-yoy"></canvas></div></div>
+  </div>
+  <div class="sec-label">부문별 상세 수치표</div>
+  <div class="cc"><div class="tw"><table id="all-tbl"></table></div></div>
+</div>
+
+<!-- ════ 4부문 개요 ════ -->
+<div class="pnl" id="pnl-ov">
+  <div class="stl">📊 4부문 개요</div>
+  <div class="ssub">충남·대전·세종·전북·광주·전남 6개 시도 · 총 2,877개 점포</div>
+  <div class="kgrid" id="kov"></div>
+  <div class="cgrid">
+    <div class="cc full"><div class="ctl">시도별 고객수 (만 명)</div><div class="csub">6개 담당 시도 · 연도별 그룹</div>
+      <div class="leg"><div class="li"><div class="ld" style="background:var(--y24)"></div>2024</div><div class="li"><div class="ld" style="background:var(--y25)"></div>2025</div><div class="li"><div class="ld" style="background:var(--y26)"></div>2026</div></div>
+      <div style="position:relative;height:250px"><canvas id="c-ov-c"></canvas></div></div>
+    <div class="cc"><div class="ctl">시도별 매출액 (억 원)</div><div style="position:relative;height:220px"><canvas id="c-ov-m"></canvas></div></div>
+    <div class="cc"><div class="ctl">시도별 일매출 (백만 원)</div><div style="position:relative;height:220px"><canvas id="c-ov-d"></canvas></div></div>
+    <div class="cc"><div class="ctl">시도별 객단가 (원)</div><div style="position:relative;height:220px"><canvas id="c-ov-u"></canvas></div></div>
+    <div class="cc"><div class="ctl">시도별 고객수 성장률 (%)</div><div class="csub">2024 → 2026</div><div style="position:relative;height:220px"><canvas id="c-ov-g"></canvas></div></div>
+  </div>
+</div>
+
+<!-- ════ 지역별 ════ -->
+<div class="pnl" id="pnl-re">
+  <div class="stl">📍 지역별 실적 분석</div><div class="ssub">4부문 내 1~4지역 + FCS · 지표 선택 가능</div>
+  <div class="fb"><span class="fl">지표:</span>
+    <button class="mbtn on" onclick="setReM('c',this)">👥 고객수</button>
+    <button class="mbtn" onclick="setReM('m',this)">💰 매출액</button>
+    <button class="mbtn" onclick="setReM('d',this)">📈 일매출</button>
+    <button class="mbtn" onclick="setReM('u',this)">🛒 객단가</button>
+  </div>
+  <div class="cgrid">
+    <div class="cc full"><div class="ctl" id="re-ctl">지역별 고객수 (만 명)</div><div class="csub">수치 직접 표기 · 연도별 비교</div>
+      <div class="leg"><div class="li"><div class="ld" style="background:var(--y24)"></div>2024</div><div class="li"><div class="ld" style="background:var(--y25)"></div>2025</div><div class="li"><div class="ld" style="background:var(--y26)"></div>2026</div></div>
+      <div style="position:relative;height:280px"><canvas id="c-re-bar"></canvas></div></div>
+    <div class="cc full"><div class="ctl">지역별 2024→2026 성장률 (%)</div><div style="position:relative;height:220px"><canvas id="c-re-g"></canvas></div></div>
+  </div>
+  <div class="cc"><div class="ctl">지역별 상세 수치표</div><div class="tw"><table id="re-tbl"></table></div></div>
+</div>
+
+<!-- ════ 월별 ════ -->
+<div class="pnl" id="pnl-mo">
+  <div class="stl">📅 월별 실적 트렌드</div><div class="ssub">2024.01 ~ 2026.05 · 15개월 · 지역별 선택 가능</div>
+  <div class="fb"><span class="fl">지역:</span>
+    <button class="fbtn on" onclick="setMoR('ALL',this)">전체</button>
+    <button class="fbtn" onclick="setMoR('4부문)1지역',this)">4-1지역</button>
+    <button class="fbtn" onclick="setMoR('4부문)2지역',this)">4-2지역</button>
+    <button class="fbtn" onclick="setMoR('4부문)3지역',this)">4-3지역</button>
+    <button class="fbtn" onclick="setMoR('4부문)4지역',this)">4-4지역</button>
+  </div>
+  <div class="cgrid">
+    <div class="cc full"><div class="ctl">월별 고객수 추이 (만 명)</div><div class="csub">파란=2024 / 초록=2025 / 주황=2026 구간</div><div style="position:relative;height:240px"><canvas id="c-mo-c"></canvas></div></div>
+    <div class="cc"><div class="ctl">월별 매출액 (억 원)</div><div style="position:relative;height:210px"><canvas id="c-mo-m"></canvas></div></div>
+    <div class="cc"><div class="ctl">월별 일매출 (백만 원)</div><div style="position:relative;height:210px"><canvas id="c-mo-d"></canvas></div></div>
+    <div class="cc full"><div class="ctl">동일월 연도별 YoY (고객수)</div>
+      <div class="leg"><div class="li"><div class="ld" style="background:var(--y24)"></div>2024</div><div class="li"><div class="ld" style="background:var(--y25)"></div>2025</div><div class="li"><div class="ld" style="background:var(--y26)"></div>2026</div></div>
+      <div style="position:relative;height:220px"><canvas id="c-mo-yoy"></canvas></div></div>
+  </div>
+</div>
+
+<!-- ════ 지도 ════ -->
+<div class="pnl" id="pnl-mp">
+  <div class="stl">🗺️ 4부문 행정구역 지도</div><div class="ssub">충남·대전·세종·전북·광주·전남 · 시도 배경 + 시군구 버블 조합</div>
+  <div class="map-outer">
+    <div class="map-ctrl">
+      <span class="fl">연도:</span>
+      <button class="fbtn on" onclick="setMY('26',this)">2026</button>
+      <button class="fbtn" onclick="setMY('25',this)">2025</button>
+      <button class="fbtn" onclick="setMY('24',this)">2024</button>
+      <span class="fl" style="margin-left:12px">지표:</span>
+      <button class="mbtn on" onclick="setMM('c',this)">👥 고객수</button>
+      <button class="mbtn" onclick="setMM('m',this)">💰 매출액</button>
+      <button class="mbtn" onclick="setMM('d',this)">📈 일매출</button>
+      <button class="mbtn" onclick="setMM('u',this)">🛒 객단가</button>
+      <span style="margin-left:auto;font-size:11px;color:var(--mu)">시도 6개 · 시군구 61개</span>
+    </div>
+    <div class="map-body">
+      <div class="map-svg-wrap" id="msw">
+        <svg id="kmap" viewBox="85 220 240 270" preserveAspectRatio="xMidYMid meet"></svg>
+        <div class="mtt" id="mtt"></div>
+        <div class="mleg" id="mleg"></div>
+      </div>
+      <div class="map-side">
+        <div class="ms-hdr" id="ms-hdr"><span>📌</span><span>지역을 클릭하세요</span></div>
+        <div class="ms-body" id="ms-body"><div class="empty-hint">지도에서 시도(배경) 또는<br>시군구(버블)를 클릭하면<br>상세 실적이 표시됩니다</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="cc" style="margin-top:16px"><div class="ctl" id="mp-tbl-t">시도별 실적 순위</div><div class="tw"><table id="mp-tbl"></table></div></div>
+</div>
+
+<!-- ════ 인사이트 ════ -->
+<div class="pnl" id="pnl-ins">
+  <div class="stl">💡 4부문 핵심 인사이트</div><div class="ssub">데이터 자동 도출 · 관리 포인트 요약</div>
+  <div class="igrid" id="igrid"></div>
+  <div class="cgrid">
+    <div class="cc full"><div class="ctl">지역별 객단가 3개년 추세</div>
+      <div class="leg"><div class="li"><div class="ld" style="background:var(--y24)"></div>2024</div><div class="li"><div class="ld" style="background:var(--y25)"></div>2025</div><div class="li"><div class="ld" style="background:var(--y26)"></div>2026</div></div>
+      <div style="position:relative;height:250px"><canvas id="c-ins-u"></canvas></div></div>
+    <div class="cc full"><div class="ctl">시군구별 고객수 Top 15 (2026)</div><div class="csub">4부문 내 상위 시군구</div>
+      <div style="position:relative;height:280px"><canvas id="c-ins-top"></canvas></div></div>
+  </div>
+</div>
+</div><!-- /wrap -->
+<script>
+const D={"bm_annual":[{"name":"1부문","c24":14150.6,"c25":14166.7,"c26":15702.0,"m24":8873.5,"m25":9065.8,"m26":10331.7,"d24":6033.4,"d25":6151.6,"d26":7053.7,"u24":6432,"u25":6570,"u26":6764},{"name":"2부문","c24":11896.9,"c25":11825.6,"c26":12946.1,"m24":7382.2,"m25":7512.6,"m26":8466.0,"d24":4987.3,"d25":5071.8,"d26":5723.3,"u24":6608,"u25":6763,"u26":6942},{"name":"3부문","c24":10234.4,"c25":10324.6,"c26":11514.3,"m24":6858.2,"m25":7084.3,"m26":8131.3,"d24":4692.4,"d25":4828.5,"d26":5570.2,"u24":6934,"u25":7101,"u26":7290},{"name":"4부문","c24":8441.2,"c25":8684.8,"c26":9650.0,"m24":5797.7,"m25":6092.7,"m26":6986.0,"d24":3974.7,"d25":4165.9,"d26":4785.6,"u24":7058,"u25":7222,"u26":7435},{"name":"5부문","c24":6523.3,"c25":6720.0,"c26":7371.5,"m24":4344.5,"m25":4570.9,"m26":5185.3,"d24":2973.6,"d25":3080.7,"d26":3517.2,"u24":6889,"u25":7066,"u26":7333},{"name":"6부문","c24":8571.9,"c25":8737.9,"c26":9624.4,"m24":5561.2,"m25":5799.2,"m26":6602.6,"d24":3783.7,"d25":3937.5,"d26":4520.5,"u24":6889,"u25":7029,"u26":7209}],"bm_month_all":{"c":[10867.8,10424.2,12096.3,12918.9,13510.9,11421.8,8669.2,12947.5,13484.4,13936.6,12072.2,11276.2,13793.9,14495.1,15170.9],"m":[7285.8,7060.4,7811.0,8103.3,8556.7,7980.6,5904.0,8529.0,8641.9,9069.9,8592.2,8031.0,9268.0,9515.9,10296.0],"d":[23777.3,24729.6,25584.3,27370.4,27935.4,26031.4,21300.6,27818.1,29092.6,29577.2,27993.5,29026.8,30279.9,32042.8,33671.3]},"bm_month_each":{"전체":{"c":[10867.8,10424.2,12096.3,12918.9,13510.9,11421.8,8669.2,12947.5,13484.4,13936.6,12072.2,11276.2,13793.9,14495.1,15170.9],"m":[7285.8,7060.4,7811.0,8103.3,8556.7,7980.6,5904.0,8529.0,8641.9,9069.9,8592.2,8031.0,9268.0,9515.9,10296.0],"d":[23777.3,24729.6,25584.3,27370.4,27935.4,26031.4,21300.6,27818.1,29092.6,29577.2,27993.5,29026.8,30279.9,32042.8,33671.3]},"1부문":{"c":[2620.6,2495.3,2852.8,3035.3,3146.5,2696.6,2063.9,3025.5,3131.0,3249.6,2862.2,2658.6,3243.1,3399.2,3539.0],"m":[1689.9,1627.7,1784.9,1841.6,1929.3,1809.3,1350.4,1927.9,1945.4,2032.7,1959.4,1812.4,2107.7,2147.6,2304.7],"d":[5512.5,5714.5,5850.8,6229.7,6314.8,5920.0,4878.8,6307.4,6555.4,6628.6,6380.5,6563.3,6890.4,7249.6,7556.6]},"2부문":{"c":[2190.1,2086.1,2391.5,2561.0,2668.1,2238.5,1712.9,2521.8,2628.2,2724.2,2364.4,2189.5,2660.8,2799.5,2931.9],"m":[1405.4,1351.8,1475.9,1532.4,1616.7,1505.8,1110.8,1585.1,1612.5,1698.4,1603.5,1491.0,1708.8,1757.3,1905.4],"d":[4576.0,4723.1,4812.2,5175.3,5257.6,4897.4,3988.6,5144.2,5412.8,5533.0,5205.3,5380.1,5561.5,5897.9,6207.7]},"3부문":{"c":[1849.8,1765.0,2074.5,2226.5,2318.5,1926.6,1470.3,2224.9,2316.8,2386.0,2056.3,1910.6,2390.1,2529.7,2627.7],"m":[1287.8,1238.1,1384.0,1436.9,1511.3,1400.9,1042.2,1513.5,1528.1,1599.6,1518.1,1412.9,1658.6,1708.3,1833.4],"d":[4207.9,4339.1,4532.6,4845.9,4945.7,4574.9,3781.4,4952.4,5144.0,5232.6,4964.5,5109.3,5459.2,5745.1,6002.1]},"4부문":{"c":[1485.1,1443.0,1719.6,1847.7,1945.8,1633.2,1219.5,1871.8,1945.6,2014.8,1719.4,1623.5,2001.0,2103.0,2203.1],"m":[1059.5,1038.4,1171.9,1224.8,1303.3,1207.8,883.8,1300.9,1314.6,1385.6,1298.5,1227.8,1418.9,1459.9,1580.9],"d":[3463.2,3639.4,3837.0,4153.7,4244.1,3932.0,3189.1,4251.9,4451.3,4525.2,4242.2,4442.7,4640.4,4925.8,5172.9]},"5부문":{"c":[1146.5,1117.1,1326.6,1429.6,1503.5,1240.0,939.1,1452.8,1528.2,1559.8,1301.3,1233.6,1534.3,1616.2,1686.1],"m":[795.0,780.1,877.4,917.7,974.3,891.2,659.3,978.8,998.6,1043.0,965.0,907.7,1053.9,1083.6,1175.0],"d":[2592.5,2726.1,2874.0,3087.1,3184.6,2906.8,2369.3,3173.9,3345.7,3382.1,3134.6,3272.9,3429.0,3642.3,3825.4]},"6부문":{"c":[1575.8,1517.8,1731.2,1818.8,1928.3,1686.8,1263.4,1850.7,1934.6,2002.2,1768.6,1660.4,1964.7,2047.5,2183.1],"m":[1048.2,1024.3,1116.9,1150.0,1221.7,1165.6,857.4,1222.8,1242.8,1310.5,1247.7,1179.3,1319.9,1359.1,1496.6],"d":[3425.2,3587.4,3677.7,3878.7,3988.6,3800.2,3093.4,3988.3,4183.5,4275.8,4066.4,4258.5,4299.3,4582.1,4906.6]}},"months":["202401","202402","202403","202404","202405","202501","202502","202503","202504","202505","202601","202602","202603","202604","202605"],"sido4":{"광주광역시":{"c24":1228.1,"c25":1291.1,"c26":1410.2,"m24":783.5,"m25":846.1,"m26":960.2,"d24":534.6,"d25":575.7,"d26":681.6,"u24":6486,"u25":6639,"u26":6928,"stores":401},"대전광역시":{"c24":1689.2,"c25":1726.6,"c26":1962.1,"m24":1053.3,"m25":1100.8,"m26":1298.7,"d24":722.3,"d25":752.7,"d26":882.8,"u24":6369,"u25":6515,"u26":6764,"stores":495},"세종특별자치시":{"c24":342.7,"c25":380.3,"c26":419.2,"m24":224.1,"m25":256.0,"m26":293.2,"d24":162.6,"d25":179.0,"d26":200.0,"u24":6768,"u25":6964,"u26":7150,"stores":118},"전라남도":{"c24":1287.7,"c25":1321.6,"c26":1462.3,"m24":941.6,"m25":991.3,"m26":1129.8,"d24":640.5,"d25":672.0,"d26":762.9,"u24":7475,"u25":7695,"u26":7882,"stores":478},"전북특별자치도":{"c24":1462.4,"c25":1511.2,"c26":1692.0,"m24":1020.7,"m25":1075.2,"m26":1238.3,"d24":695.7,"d25":730.2,"d26":841.8,"u24":7113,"u25":7280,"u26":7467,"stores":527},"충청남도":{"c24":2431.1,"c25":2454.0,"c26":2704.2,"m24":1774.5,"m25":1823.4,"m26":2065.9,"d24":1219.0,"d25":1256.5,"d26":1416.5,"u24":7490,"u25":7637,"u26":7834,"stores":850}},"sgg4":{"광주광역시_광산구":{"sido":"광주광역시","sgg":"광산구","c24":352.9,"c25":367.4,"c26":392.0,"m24":233.2,"m25":248.5,"m26":273.9,"d24":161.1,"d25":168.9,"d26":190.9,"u24":6741,"u25":6871,"u26":7124,"stores":108},"광주광역시_남구":{"sido":"광주광역시","sgg":"남구","c24":145.3,"c25":154.4,"c26":169.8,"m24":89.1,"m25":96.2,"m26":110.7,"d24":62.5,"d25":65.4,"d26":75.3,"u24":6291,"u25":6362,"u26":6689,"stores":49},"광주광역시_동구":{"sido":"광주광역시","sgg":"동구","c24":110.6,"c25":111.7,"c26":117.9,"m24":65.8,"m25":68.8,"m26":75.2,"d24":45.7,"d25":45.6,"d26":57.3,"u24":6058,"u25":6264,"u26":6485,"stores":36},"광주광역시_북구":{"sido":"광주광역시","sgg":"북구","c24":390.5,"c25":416.2,"c26":466.6,"m24":244.2,"m25":268.5,"m26":312.8,"d24":164.4,"d25":182.1,"d26":219.1,"u24":6363,"u25":6514,"u26":6830,"stores":133},"광주광역시_서구":{"sido":"광주광역시","sgg":"서구","c24":228.8,"c25":241.5,"c26":263.9,"m24":151.1,"m25":164.0,"m26":187.6,"d24":101.1,"d25":113.7,"d26":138.9,"u24":6658,"u25":6881,"u26":7194,"stores":75},"대전광역시_대덕구":{"sido":"대전광역시","sgg":"대덕구","c24":163.7,"c25":159.0,"c26":180.2,"m24":107.9,"m25":107.0,"m26":124.3,"d24":75.2,"d25":71.8,"d26":86.1,"u24":6804,"u25":6976,"u26":7123,"stores":45},"대전광역시_동구":{"sido":"대전광역시","sgg":"동구","c24":271.2,"c25":282.9,"c26":317.9,"m24":168.2,"m25":180.1,"m26":207.3,"d24":119.1,"d25":128.4,"d26":139.9,"u24":6443,"u25":6594,"u26":6770,"stores":80},"대전광역시_서구":{"sido":"대전광역시","sgg":"서구","c24":573.8,"c25":586.7,"c26":653.6,"m24":353.6,"m25":368.3,"m26":429.8,"d24":242.9,"d25":247.3,"d26":290.6,"u24":6229,"u25":6368,"u26":6656,"stores":164},"대전광역시_유성구":{"sido":"대전광역시","sgg":"유성구","c24":425.5,"c25":436.3,"c26":505.6,"m24":259.1,"m25":269.7,"m26":321.5,"d24":175.4,"d25":182.1,"d26":220.2,"u24":6269,"u25":6363,"u26":6581,"stores":128},"대전광역시_중구":{"sido":"대전광역시","sgg":"중구","c24":255.0,"c25":261.7,"c26":304.7,"m24":164.5,"m25":175.7,"m26":215.8,"d24":109.7,"d25":123.1,"d26":145.9,"u24":6502,"u25":6726,"u26":7076,"stores":78},"세종특별자치시_세종특별자치시":{"sido":"세종특별자치시","sgg":"세종특별자치시","c24":342.7,"c25":380.3,"c26":419.2,"m24":224.1,"m25":256.0,"m26":293.2,"d24":162.6,"d25":179.0,"d26":200.0,"u24":6768,"u25":6964,"u26":7150,"stores":118},"전라남도_강진군":{"sido":"전라남도","sgg":"강진군","c24":9.9,"c25":9.8,"c26":11.0,"m24":8.9,"m25":8.7,"m26":10.1,"d24":5.8,"d25":5.8,"d26":6.7,"u24":9180,"u25":9188,"u26":9424,"stores":4},"전라남도_고흥군":{"sido":"전라남도","sgg":"고흥군","c24":22.0,"c25":21.7,"c26":32.7,"m24":18.8,"m25":19.0,"m26":28.3,"d24":12.3,"d25":13.0,"d26":18.8,"u24":8853,"u25":8956,"u26":8882,"stores":12},"전라남도_곡성군":{"sido":"전라남도","sgg":"곡성군","c24":24.2,"c25":22.0,"c26":22.9,"m24":17.6,"m25":16.5,"m26":18.1,"d24":12.2,"d25":11.4,"d26":12.4,"u24":7457,"u25":7643,"u26":8023,"stores":10},"전라남도_광양시":{"sido":"전라남도","sgg":"광양시","c24":108.0,"c25":113.5,"c26":121.9,"m24":80.1,"m25":87.2,"m26":95.3,"d24":55.7,"d25":58.4,"d26":64.9,"u24":7584,"u25":7869,"u26":8002,"stores":39},"전라남도_구례군":{"sido":"전라남도","sgg":"구례군","c24":10.6,"c25":9.2,"c26":8.8,"m24":8.8,"m25":8.1,"m26":8.3,"d24":5.8,"d25":5.3,"d26":5.5,"u24":8603,"u25":8941,"u26":9377,"stores":3},"전라남도_나주시":{"sido":"전라남도","sgg":"나주시","c24":80.5,"c25":94.4,"c26":108.5,"m24":55.4,"m25":65.9,"m26":77.6,"d24":41.0,"d25":45.9,"d26":52.2,"u24":7077,"u25":7367,"u26":7478,"stores":31},"전라남도_담양군":{"sido":"전라남도","sgg":"담양군","c24":16.2,"c25":17.5,"c26":22.5,"m24":11.9,"m25":13.2,"m26":17.9,"d24":8.1,"d25":9.3,"d26":11.9,"u24":7498,"u25":7573,"u26":8091,"stores":8},"전라남도_목포시":{"sido":"전라남도","sgg":"목포시","c24":182.9,"c25":183.6,"c26":200.0,"m24":131.7,"m25":136.1,"m26":151.6,"d24":88.6,"d25":91.9,"d26":105.9,"u24":7329,"u25":7539,"u26":7655,"stores":63},"전라남도_무안군":{"sido":"전라남도","sgg":"무안군","c24":40.8,"c25":58.9,"c26":72.0,"m24":26.5,"m25":42.3,"m26":52.5,"d24":20.0,"d25":28.0,"d26":34.8,"u24":6539,"u25":7222,"u26":7365,"stores":20},"전라남도_보성군":{"sido":"전라남도","sgg":"보성군","c24":15.7,"c25":16.3,"c26":18.0,"m24":12.6,"m25":14.2,"m26":15.8,"d24":8.3,"d25":9.6,"d26":10.7,"u24":8038,"u25":8777,"u26":8648,"stores":7},"전라남도_순천시":{"sido":"전라남도","sgg":"순천시","c24":231.7,"c25":234.7,"c26":259.7,"m24":148.8,"m25":156.1,"m26":180.9,"d24":102.1,"d25":104.7,"d26":121.9,"u24":6533,"u25":6752,"u26":7051,"stores":80},"전라남도_여수시":{"sido":"전라남도","sgg":"여수시","c24":304.3,"c25":301.5,"c26":323.8,"m24":227.8,"m25":229.4,"m26":251.6,"d24":151.2,"d25":155.3,"d26":168.9,"u24":7592,"u25":7743,"u26":7855,"stores":110},"전라남도_영광군":{"sido":"전라남도","sgg":"영광군","c24":23.5,"c25":23.5,"c26":23.2,"m24":18.0,"m25":18.6,"m26":19.4,"d24":11.8,"d25":12.3,"d26":12.9,"u24":7734,"u25":8016,"u26":8538,"stores":8},"전라남도_영암군":{"sido":"전라남도","sgg":"영암군","c24":52.3,"c25":51.3,"c26":58.2,"m24":41.4,"m25":41.4,"m26":49.1,"d24":28.0,"d25":27.4,"d26":33.1,"u24":7901,"u25":8026,"u26":8264,"stores":17},"전라남도_완도군":{"sido":"전라남도","sgg":"완도군","c24":33.0,"c25":31.0,"c26":35.3,"m24":25.0,"m25":23.6,"m26":28.6,"d24":16.5,"d25":18.0,"d26":19.2,"u24":7752,"u25":7886,"u26":7943,"stores":13},"전라남도_장성군":{"sido":"전라남도","sgg":"장성군","c24":18.6,"c25":17.0,"c26":18.7,"m24":16.2,"m25":14.9,"m26":16.7,"d24":10.9,"d25":9.9,"d26":11.1,"u24":8511,"u25":8587,"u26":8734,"stores":7},"전라남도_장흥군":{"sido":"전라남도","sgg":"장흥군","c24":17.0,"c25":17.2,"c26":21.5,"m24":13.2,"m25":13.9,"m26":19.2,"d24":8.7,"d25":11.3,"d26":12.7,"u24":7943,"u25":8340,"u26":9206,"stores":10},"전라남도_진도군":{"sido":"전라남도","sgg":"진도군","c24":11.8,"c25":12.1,"c26":12.8,"m24":10.3,"m25":10.4,"m26":11.5,"d24":7.2,"d25":6.9,"d26":7.6,"u24":9707,"u25":9699,"u26":10136,"stores":4},"전라남도_함평군":{"sido":"전라남도","sgg":"함평군","c24":5.6,"c25":5.6,"c26":6.3,"m24":5.1,"m25":5.3,"m26":6.0,"d24":3.3,"d25":3.5,"d26":4.0,"u24":9240,"u25":9641,"u26":9576,"stores":2},"전라남도_해남군":{"sido":"전라남도","sgg":"해남군","c24":42.4,"c25":44.3,"c26":46.0,"m24":37.4,"m25":40.0,"m26":43.0,"d24":24.6,"d25":26.6,"d26":28.5,"u24":8941,"u25":9186,"u26":9498,"stores":19},"전라남도_화순군":{"sido":"전라남도","sgg":"화순군","c24":36.8,"c25":36.6,"c26":38.5,"m24":26.2,"m25":26.4,"m26":28.2,"d24":18.3,"d25":17.5,"d26":19.3,"u24":7214,"u25":7482,"u26":7534,"stores":11},"전북특별자치도_고창군":{"sido":"전북특별자치도","sgg":"고창군","c24":16.4,"c25":16.1,"c26":15.9,"m24":11.1,"m25":11.5,"m26":12.0,"d24":7.5,"d25":7.6,"d26":8.0,"u24":6859,"u25":7248,"u26":7539,"stores":5},"전북특별자치도_군산시":{"sido":"전북특별자치도","sgg":"군산시","c24":334.5,"c25":336.1,"c26":358.3,"m24":243.8,"m25":250.3,"m26":273.6,"d24":166.4,"d25":172.8,"d26":186.4,"u24":7371,"u25":7565,"u26":7723,"stores":115},"전북특별자치도_김제시":{"sido":"전북특별자치도","sgg":"김제시","c24":55.4,"c25":56.4,"c26":66.3,"m24":45.1,"m25":46.8,"m26":55.1,"d24":31.8,"d25":31.2,"d26":36.5,"u24":8145,"u25":8299,"u26":8374,"stores":23},"전북특별자치도_남원시":{"sido":"전북특별자치도","sgg":"남원시","c24":39.6,"c25":45.0,"c26":50.9,"m24":29.2,"m25":34.7,"m26":40.3,"d24":19.5,"d25":23.3,"d26":27.7,"u24":7669,"u25":7957,"u26":7984,"stores":16},"전북특별자치도_무주군":{"sido":"전북특별자치도","sgg":"무주군","c24":5.9,"c25":5.8,"c26":5.5,"m24":5.3,"m25":5.2,"m26":5.3,"d24":3.5,"d25":3.5,"d26":3.5,"u24":9201,"u25":9149,"u26":9654,"stores":3},"전북특별자치도_부안군":{"sido":"전북특별자치도","sgg":"부안군","c24":17.5,"c25":20.2,"c26":25.2,"m24":13.9,"m25":17.0,"m26":20.7,"d24":9.7,"d25":11.6,"d26":14.6,"u24":7904,"u25":8574,"u26":8499,"stores":12},"전북특별자치도_순창군":{"sido":"전북특별자치도","sgg":"순창군","c24":12.3,"c25":11.2,"c26":11.7,"m24":9.0,"m25":8.3,"m26":9.1,"d24":5.9,"d25":5.5,"d26":6.0,"u24":7332,"u25":7466,"u26":7728,"stores":3},"전북특별자치도_완주군":{"sido":"전북특별자치도","sgg":"완주군","c24":103.0,"c25":103.0,"c26":113.6,"m24":73.8,"m25":75.4,"m26":86.3,"d24":49.0,"d25":50.7,"d26":57.1,"u24":7273,"u25":7402,"u26":7684,"stores":34},"전북특별자치도_익산시":{"sido":"전북특별자치도","sgg":"익산시","c24":210.1,"c25":215.0,"c26":236.0,"m24":145.3,"m25":152.4,"m26":173.5,"d24":99.0,"d25":104.2,"d26":116.3,"u24":7133,"u25":7347,"u26":7611,"stores":75},"전북특별자치도_임실군":{"sido":"전북특별자치도","sgg":"임실군","c24":1.6,"c25":4.1,"c26":4.4,"m24":1.9,"m25":4.0,"m26":4.3,"d24":1.2,"d25":2.6,"d26":2.8,"u24":11865,"u25":10107,"u26":9823,"stores":2},"전북특별자치도_장수군":{"sido":"전북특별자치도","sgg":"장수군","c24":4.2,"c25":2.9,"c26":4.7,"m24":3.5,"m25":2.4,"m26":4.3,"d24":2.6,"d25":1.6,"d26":2.8,"u24":8441,"u25":8221,"u26":9047,"stores":3},"전북특별자치도_전주시":{"sido":"전북특별자치도","sgg":"전주시","c24":594.2,"c25":628.8,"c26":726.3,"m24":385.2,"m25":413.4,"m26":494.2,"d24":263.5,"d25":279.9,"d26":339.9,"u24":6557,"u25":6655,"u26":6867,"stores":208},"전북특별자치도_정읍시":{"sido":"전북특별자치도","sgg":"정읍시","c24":58.3,"c25":56.6,"c26":62.4,"m24":45.9,"m25":45.8,"m26":51.0,"d24":30.8,"d25":30.3,"d26":34.4,"u24":7907,"u25":8119,"u26":8158,"stores":25},"전북특별자치도_진안군":{"sido":"전북특별자치도","sgg":"진안군","c24":9.5,"c25":9.9,"c26":10.8,"m24":7.5,"m25":8.0,"m26":8.7,"d24":5.4,"d25":5.3,"d26":5.7,"u24":7517,"u25":7888,"u26":7852,"stores":3},"충청남도_계룡시":{"sido":"충청남도","sgg":"계룡시","c24":41.6,"c25":41.1,"c26":46.6,"m24":27.9,"m25":28.0,"m26":33.4,"d24":18.9,"d25":18.6,"d26":22.5,"u24":6830,"u25":6958,"u26":7385,"stores":13},"충청남도_공주시":{"sido":"충청남도","sgg":"공주시","c24":122.5,"c25":117.3,"c26":126.2,"m24":94.9,"m25":92.2,"m26":101.3,"d24":64.4,"d25":61.7,"d26":67.2,"u24":7914,"u25":8039,"u26":8219,"stores":40},"충청남도_금산군":{"sido":"충청남도","sgg":"금산군","c24":31.5,"c25":30.5,"c26":30.6,"m24":21.5,"m25":21.9,"m26":23.0,"d24":16.3,"d25":15.6,"d26":16.4,"u24":7242,"u25":7487,"u26":7633,"stores":10},"충청남도_논산시":{"sido":"충청남도","sgg":"논산시","c24":99.4,"c25":96.3,"c26":101.9,"m24":72.1,"m25":71.1,"m26":77.0,"d24":48.5,"d25":47.9,"d26":51.5,"u24":7377,"u25":7529,"u26":7713,"stores":34},"충청남도_당진시":{"sido":"충청남도","sgg":"당진시","c24":206.9,"c25":206.9,"c26":227.5,"m24":178.5,"m25":179.8,"m26":201.4,"d24":119.9,"d25":121.5,"d26":138.1,"u24":8533,"u25":8627,"u26":8828,"stores":85},"충청남도_보령시":{"sido":"충청남도","sgg":"보령시","c24":76.1,"c25":73.2,"c26":76.6,"m24":62.7,"m25":61.9,"m26":66.1,"d24":41.4,"d25":41.0,"d26":43.9,"u24":8397,"u25":8546,"u26":8693,"stores":38},"충청남도_부여군":{"sido":"충청남도","sgg":"부여군","c24":31.2,"c25":31.0,"c26":39.1,"m24":23.9,"m25":24.9,"m26":33.8,"d24":16.7,"d25":16.5,"d26":23.1,"u24":7850,"u25":8215,"u26":8674,"stores":14},"충청남도_서산시":{"sido":"충청남도","sgg":"서산시","c24":180.0,"c25":180.1,"c26":196.8,"m24":148.0,"m25":148.8,"m26":162.7,"d24":100.7,"d25":100.7,"d26":110.9,"u24":8302,"u25":8415,"u26":8420,"stores":63},"충청남도_서천군":{"sido":"충청남도","sgg":"서천군","c24":23.2,"c25":23.5,"c26":27.3,"m24":19.4,"m25":19.7,"m26":23.9,"d24":13.7,"d25":13.0,"d26":16.8,"u24":8430,"u25":8473,"u26":8814,"stores":12},"충청남도_아산시":{"sido":"충청남도","sgg":"아산시","c24":471.2,"c25":477.8,"c26":547.2,"m24":331.5,"m25":343.9,"m26":411.3,"d24":231.5,"d25":245.2,"d26":283.4,"u24":7201,"u25":7371,"u26":7682,"stores":150},"충청남도_예산군":{"sido":"충청남도","sgg":"예산군","c24":71.6,"c25":71.1,"c26":75.7,"m24":53.3,"m25":53.6,"m26":57.7,"d24":35.9,"d25":38.0,"d26":39.2,"u24":7395,"u25":7514,"u26":7610,"stores":32},"충청남도_천안시":{"sido":"충청남도","sgg":"천안시","c24":942.9,"c25":966.5,"c26":1056.2,"m24":640.5,"m25":669.5,"m26":751.1,"d24":442.3,"d25":463.2,"d26":515.6,"u24":6924,"u25":7061,"u26":7213,"stores":293},"충청남도_청양군":{"sido":"충청남도","sgg":"청양군","c24":11.0,"c25":11.4,"c26":10.6,"m24":9.0,"m25":9.5,"m26":9.6,"d24":5.9,"d25":6.3,"d26":10.1,"u24":7963,"u25":8364,"u26":9264,"stores":6},"충청남도_태안군":{"sido":"충청남도","sgg":"태안군","c24":55.9,"c25":63.3,"c26":69.5,"m24":46.9,"m25":54.5,"m26":61.9,"d24":31.3,"d25":36.1,"d26":41.1,"u24":8714,"u25":8907,"u26":9106,"stores":33},"충청남도_홍성군":{"sido":"충청남도","sgg":"홍성군","c24":66.1,"c25":63.8,"c26":72.3,"m24":44.5,"m25":44.0,"m26":51.7,"d24":31.6,"d25":31.3,"d26":36.7,"u24":6758,"u25":6891,"u26":7139,"stores":27}},"re4":[{"bm":"4부문","name":"4부문 FCS","c24":348.5,"c25":523.1,"c26":743.6,"m24":250.3,"m25":385.1,"m26":573.6,"d24":197.0,"d25":294.9,"d26":436.7,"u24":7225,"u25":7409,"u26":7790,"stores":167},{"bm":"4부문","name":"4부문)1지역","c24":2025.8,"c25":2014.0,"c26":2166.9,"m24":1470.9,"m25":1485.4,"m26":1638.3,"d24":1008.0,"d25":1009.5,"d26":1122.5,"u24":7434,"u25":7578,"u26":7758,"stores":687},{"bm":"4부문","name":"4부문)2지역","c24":2213.6,"c25":2230.7,"c26":2469.0,"m24":1419.3,"m25":1460.5,"m26":1672.6,"d24":968.4,"d25":994.6,"d26":1133.1,"u24":6665,"u25":6810,"u26":7025,"stores":686},{"bm":"4부문","name":"4부문)3지역","c24":1907.6,"c25":1943.9,"c26":2121.7,"m24":1302.1,"m25":1351.9,"m26":1517.6,"d24":885.7,"d25":914.7,"d26":1022.1,"u24":6960,"u25":7123,"u26":7315,"stores":660},{"bm":"4부문","name":"4부문)4지역","c24":1945.7,"c25":1973.1,"c26":2148.8,"m24":1355.1,"m25":1409.8,"m26":1583.9,"d24":915.7,"d25":952.2,"d26":1071.2,"u24":7154,"u25":7345,"u26":7554,"stores":677}],"mo4":{"c":[1485.1,1443.0,1719.6,1847.7,1945.8,1633.2,1219.5,1871.8,1945.6,2014.8,1719.4,1623.5,2001.0,2103.0,2203.1],"m":[1059.5,1038.4,1171.9,1224.8,1303.3,1207.8,883.8,1300.9,1314.6,1385.6,1298.5,1227.8,1418.9,1459.9,1580.9],"d":[3463.2,3639.4,3837.0,4153.7,4244.1,3932.0,3189.1,4251.9,4451.3,4525.2,4242.2,4442.7,4640.4,4925.8,5172.9]},"mo4_re":{"4부문)1지역":{"c":[346.6,334.8,419.0,454.1,471.2,364.8,274.4,441.3,461.1,472.4,373.5,349.7,454.6,484.2,504.9],"m":[265.9,258.1,300.0,315.0,331.9,286.1,212.1,320.5,326.0,340.7,297.0,279.5,336.8,349.2,375.7],"d":[866.8,899.7,984.0,1061.6,1085.0,931.3,771.7,1047.0,1092.1,1110.3,966.1,1010.6,1097.2,1179.9,1229.1]},"4부문)2지역":{"c":[389.0,375.5,452.3,488.6,508.1,413.8,312.5,483.4,503.5,517.6,435.1,409.6,518.4,543.2,562.8],"m":[259.6,252.8,288.0,301.4,317.6,286.0,211.4,313.8,316.8,332.5,309.4,290.1,344.4,351.3,377.4],"d":[845.6,885.9,940.1,1017.6,1034.2,930.8,759.5,1019.9,1063.4,1085.8,1005.9,1049.4,1120.6,1183.2,1224.5]},"4부문)3지역":{"c":[340.3,333.4,387.6,411.8,434.5,372.2,274.9,417.1,430.8,448.9,385.5,365.6,435.9,455.2,479.4],"m":[239.7,236.2,262.9,273.3,290.1,272.1,196.3,287.6,290.1,305.9,287.4,270.6,305.9,313.6,340.1],"d":[784.7,827.6,855.1,917.7,945.2,881.4,704.5,933.9,980.3,995.9,929.1,974.3,997.2,1047.7,1105.7]},"4부문)4지역":{"c":[353.1,342.6,392.2,415.4,442.3,385.7,284.4,421.3,433.9,447.8,394.0,373.2,439.2,459.6,482.9],"m":[252.6,248.9,271.8,280.9,300.8,288.2,208.8,299.3,299.1,314.5,299.4,286.3,316.4,327.3,354.6],"d":[821.2,868.0,893.5,945.2,975.0,937.2,750.3,971.8,1000.7,1023.3,978.0,1037.5,1028.3,1102.5,1151.0]},"4부문 FCS":{"c":[56.0,56.6,68.4,77.7,89.7,96.7,73.3,108.6,116.3,128.1,131.4,125.4,152.9,160.8,173.1],"m":[41.6,42.4,49.1,54.2,62.9,75.4,55.3,79.7,82.6,92.1,105.4,101.3,115.4,118.6,133.0],"d":[144.9,158.2,164.2,211.5,204.8,251.3,203.1,279.3,314.8,309.9,363.1,370.9,397.1,412.4,462.6]}}};
+const SP={"충청남도":"M118,242 L200,232 L218,258 L208,295 L182,315 L148,312 L125,285 L118,258 Z","세종특별자치시":"M203,258 L218,251 L225,265 L212,275 L198,268 Z","대전광역시":"M196,272 L220,264 L228,278 L213,291 L192,284 Z","전북특별자치도":"M138,288 L218,278 L240,305 L230,345 L192,362 L148,352 L125,322 L130,298 Z","광주광역시":"M170,350 L200,342 L208,360 L190,373 L166,365 Z","전라남도":"M128,352 L205,342 L232,368 L225,435 L168,468 L118,452 L95,412 L100,372 Z"};
+const SC={"충청남도":[165,275],"세종특별자치시":[212,263],"대전광역시":[210,279],"전북특별자치도":[183,322],"광주광역시":[186,358],"전라남도":[165,405]};
+const GC={"충청남도_천안시":[202,242],"충청남도_아산시":[188,235],"충청남도_당진시":[152,228],"충청남도_서산시":[140,238],"충청남도_태안군":[128,245],"충청남도_홍성군":[155,258],"충청남도_예산군":[172,252],"충청남도_공주시":[192,265],"충청남도_보령시":[145,272],"충청남도_청양군":[165,268],"충청남도_부여군":[172,282],"충청남도_논산시":[185,285],"충청남도_계룡시":[195,278],"충청남도_금산군":[205,282],"충청남도_서천군":[162,295],"세종특별자치시_세종특별자치시":[214,261],"대전광역시_서구":[204,278],"대전광역시_유성구":[200,272],"대전광역시_동구":[215,275],"대전광역시_대덕구":[218,272],"대전광역시_중구":[209,277],"전북특별자치도_전주시":[182,308],"전북특별자치도_익산시":[168,300],"전북특별자치도_군산시":[155,295],"전북특별자치도_완주군":[190,315],"전북특별자치도_김제시":[165,310],"전북특별자치도_정읍시":[170,322],"전북특별자치도_남원시":[195,335],"전북특별자치도_부안군":[155,320],"전북특별자치도_고창군":[152,332],"전북특별자치도_무주군":[218,312],"전북특별자치도_임실군":[192,325],"전북특별자치도_순창군":[185,335],"전북특별자치도_장수군":[212,325],"전북특별자치도_진안군":[208,315],"광주광역시_서구":[178,355],"광주광역시_북구":[186,348],"광주광역시_남구":[182,362],"광주광역시_동구":[191,354],"광주광역시_광산구":[173,350],"전라남도_목포시":[148,393],"전라남도_무안군":[152,385],"전라남도_영광군":[145,365],"전라남도_함평군":[155,375],"전라남도_장성군":[165,368],"전라남도_나주시":[172,380],"전라남도_담양군":[188,370],"전라남도_곡성군":[198,378],"전라남도_구례군":[205,382],"전라남도_화순군":[192,385],"전라남도_영암군":[165,398],"전라남도_강진군":[172,412],"전라남도_해남군":[158,418],"전라남도_진도군":[142,420],"전라남도_완도군":[178,428],"전라남도_장흥군":[182,412],"전라남도_보성군":[198,405],"전라남도_고흥군":[208,415],"전라남도_여수시":[218,408],"전라남도_순천시":[210,395],"전라남도_광양시":[218,390]};
+const ML=['24/1','24/2','24/3','24/4','24/5','25/1','25/2','25/3','25/4','25/5','26/1','26/2','26/3','26/4','26/5'];
+const Y24='#4fa3e0',Y25='#56d4a0',Y26='#f0a04b';
+const BC=['#4fa3e0','#56d4a0','#f0a04b','#e05c7a','#a78bfa','#fb923c'];
+const UNITS={c:'만명',m:'억원',d:'백만원',u:'원'};
+const META={c:{l:'고객수',u:'만명',k:['c24','c25','c26']},m:{l:'매출액',u:'억원',k:['m24','m25','m26']},d:{l:'일매출',u:'백만원',k:['d24','d25','d26']},u:{l:'객단가',u:'원',k:['u24','u25','u26']}};
+let CHS={};
+function dc(id){if(CHS[id]){CHS[id].destroy();delete CHS[id];}}
+function g(a,b){return a>0?((b-a)/a*100).toFixed(1):'0';}
+const BASE={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#1c2330',borderColor:'#30363d',borderWidth:1,titleColor:'#e6edf3',bodyColor:'#8b949e',padding:10}},scales:{x:{grid:{color:'rgba(48,54,61,.35)'},ticks:{color:'#8b949e',font:{size:10}}},y:{grid:{color:'rgba(48,54,61,.35)'},ticks:{color:'#8b949e',font:{size:10}}}}};
+const DLP={id:'dlp',afterDatasetsDraw(chart){const ctx=chart.ctx;chart.data.datasets.forEach((ds,di)=>{const meta=chart.getDatasetMeta(di);if(meta.hidden)return;meta.data.forEach((bar,i)=>{const v=ds.data[i];if(!v||v===0)return;const txt=v>=10000?v.toLocaleString():v>=100?v.toFixed(0):v.toFixed(1);ctx.save();ctx.font='bold 8.5px sans-serif';ctx.fillStyle='rgba(230,237,243,.9)';ctx.textAlign='center';ctx.textBaseline='bottom';const y=Math.max(bar.y-2,chart.chartArea.top+10);ctx.fillText(txt,bar.x,y);ctx.restore();});});}}; 
+Chart.register(DLP);
+function bds(lbl,data,color){return {label:lbl,data,backgroundColor:color+'bb',borderRadius:4,borderSkipped:false};}
+
+// ── 탭 전환
+function go(name,el){
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
+  document.querySelectorAll('.pnl').forEach(p=>p.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('pnl-'+name).classList.add('on');
+  ({gall:initGall,ov:initOv,re:initRe,mo:initMo,mp:initMp,ins:initIns})[name]?.();
+}
+
+// ── ① 전체 개요 (6부문)
+function initGall(){
+  const bm=D.bm_annual;
+  const S=(k)=>bm.reduce((a,b)=>a+(b[k]||0),0);
+  const AU=(k)=>bm.reduce((a,b)=>a+(b[k]||0),0)/bm.length;
+  // KPI
+  document.getElementById('kall').innerHTML=[
+    {l:'전체 고객수(2026)',v:(S('c26')/1e4).toFixed(0),u:'만명',kc:'var(--y26)',chg:`▲ ${g(S('c24'),S('c26'))}% (24→26)`,rows:[{l:'2024',v:S('c24').toFixed(0),c:Y24},{l:'2025',v:S('c25').toFixed(0),c:Y25},{l:'2026',v:S('c26').toFixed(0),c:Y26}]},
+    {l:'전체 매출액(2026)',v:(S('m26')/1e4).toFixed(0),u:'억원',kc:'var(--g)',chg:`▲ ${g(S('m24'),S('m26'))}% (24→26)`,rows:[{l:'2024',v:S('m24').toFixed(0),c:Y24},{l:'2025',v:S('m25').toFixed(0),c:Y25},{l:'2026',v:S('m26').toFixed(0),c:Y26}]},
+    {l:'전체 일매출(2026)',v:S('d26').toFixed(0),u:'백만원',kc:'var(--o)',chg:`▲ ${g(S('d24'),S('d26'))}% (24→26)`,rows:[{l:'2024',v:S('d24').toFixed(0),c:Y24},{l:'2025',v:S('d25').toFixed(0),c:Y25},{l:'2026',v:S('d26').toFixed(0),c:Y26}]},
+    {l:'평균 객단가(2026)',v:AU('u26').toFixed(0),u:'원',kc:'var(--r)',chg:`▲ ${g(AU('u24'),AU('u26'))}% (24→26)`,rows:[{l:'2024',v:AU('u24').toFixed(0),c:Y24},{l:'2025',v:AU('u25').toFixed(0),c:Y25},{l:'2026',v:AU('u26').toFixed(0),c:Y26}]},
+    {l:'4부문 고객수(2026)',v:D.bm_annual.find(b=>b.name==='4부문')?.c26||0,u:'만명',kc:'var(--p)',chg:`전체 대비 ${((D.bm_annual.find(b=>b.name==='4부문')?.c26||0)/S('c26')*100).toFixed(1)}%`,rows:[{l:'2024',v:(D.bm_annual.find(b=>b.name==='4부문')?.c24||0),c:Y24},{l:'2025',v:(D.bm_annual.find(b=>b.name==='4부문')?.c25||0),c:Y25},{l:'2026',v:(D.bm_annual.find(b=>b.name==='4부문')?.c26||0),c:Y26}]},
+  ].map(k=>`<div class="kcard" style="--kc:${k.kc}"><div class="klb">${k.l}</div><div class="kv">${k.v}<span class="ku">${k.u}</span></div><div class="kd up">${k.chg}</div><div class="krow">${k.rows.map(r=>`<div class="ky"><div class="kyl">${r.l}</div><div class="kyv" style="color:${r.c}">${r.v}</div></div>`).join('')}</div></div>`).join('');
+  // 차트
+  const labs=bm.map(b=>b.name);
+  const mk=(id,k24,k25,k26)=>{dc(id);CHS[id]=new Chart(document.getElementById(id),{type:'bar',data:{labels:labs,datasets:[bds('2024',bm.map(b=>b[k24]||0),Y24),bds('2025',bm.map(b=>b[k25]||0),Y25),bds('2026',bm.map(b=>b[k26]||0),Y26)]},options:{...BASE,layout:{padding:{top:22}},plugins:{...BASE.plugins,legend:{display:true,labels:{color:'#8b949e',boxWidth:9,font:{size:10}}}}}});};
+  mk('c-all-c','c24','c25','c26');mk('c-all-m','m24','m25','m26');mk('c-all-d','d24','d25','d26');
+  dc('c-all-u');CHS['c-all-u']=new Chart(document.getElementById('c-all-u'),{type:'line',data:{labels:labs,datasets:[{label:'2024',data:bm.map(b=>b.u24||0),borderColor:Y24,tension:.3,pointRadius:5,fill:false},{label:'2025',data:bm.map(b=>b.u25||0),borderColor:Y25,tension:.3,pointRadius:5,fill:false},{label:'2026',data:bm.map(b=>b.u26||0),borderColor:Y26,tension:.3,pointRadius:5,fill:false}]},options:{...BASE,plugins:{...BASE.plugins,legend:{display:true,labels:{color:'#8b949e',boxWidth:9,font:{size:10}}}},scales:{...BASE.scales,y:{...BASE.scales.y,ticks:{...BASE.scales.y.ticks,callback:v=>v.toLocaleString()+'원'}}}}});
+  dc('c-all-g');CHS['c-all-g']=new Chart(document.getElementById('c-all-g'),{type:'bar',data:{labels:labs,datasets:[{label:'성장률',data:bm.map(b=>+g(b.c24||0,b.c26||0)),backgroundColor:bm.map((b,i)=>i===3?'#f0a04b99':'#4fa3e099'),borderRadius:5}]},options:{...BASE,scales:{...BASE.scales,y:{...BASE.scales.y,ticks:{...BASE.scales.y.ticks,callback:v=>v+'%'}}}}});
+  // 월별 전체 라인
+  const mo=D.bm_month_all;
+  const pc=ML.map((_,i)=>i<5?Y24:i<10?Y25:Y26);
+  dc('c-all-mo');CHS['c-all-mo']=new Chart(document.getElementById('c-all-mo'),{type:'line',data:{labels:ML,datasets:[{data:mo.c,borderColor:Y24,backgroundColor:Y24+'18',fill:true,tension:.35,pointRadius:4,pointBackgroundColor:pc,borderWidth:2}]},options:{...BASE}});
+  dc('c-all-yoy');CHS['c-all-yoy']=new Chart(document.getElementById('c-all-yoy'),{type:'bar',data:{labels:['1월','2월','3월','4월','5월'],datasets:[bds('2024',mo.c.slice(0,5),Y24),bds('2025',mo.c.slice(5,10),Y25),bds('2026',mo.c.slice(10,15),Y26)]},options:{...BASE,layout:{padding:{top:18}},plugins:{...BASE.plugins,legend:{display:true,labels:{color:'#8b949e',boxWidth:9,font:{size:10}}}}}});
+  // 테이블
+  document.getElementById('all-tbl').innerHTML=`<thead><tr><th>부문</th><th class="nr">고객 '24</th><th class="nr">고객 '25</th><th class="nr">고객 '26</th><th class="nr">성장률</th><th class="nr">매출 '26(억)</th><th class="nr">일매출 '26(M)</th><th class="nr">객단가 '26</th></tr></thead><tbody>`+bm.map((b,i)=>{const gg=g(b.c24||0,b.c26||0);const is4=b.name==='4부문';return`<tr style="${is4?'background:rgba(240,160,75,.08);':''}"><td><b style="${is4?'color:var(--o)':''}">${b.name}${is4?' ★':''}</b></td><td class="nr t24">${b.c24}</td><td class="nr t25">${b.c25}</td><td class="nr t26">${b.c26}</td><td class="nr"><span class="${gg>=0?'gp':'gn'}">${gg>=0?'▲':'▼'}${Math.abs(gg)}%</span></td><td class="nr t26">${b.m26}</td><td class="nr t26">${b.d26}</td><td class="nr t26">${(b.u26||0).toLocaleString()}</td></tr>`;}).join('')+'</tbody>';
+}
+
+// ── ② 4부문 개요
+function initOv(){
+  const sidos=Object.entries(D.sido4);
+  const names=sidos.map(([k])=>k.replace('특별자치도','').replace('광역시','').replace('특별자치시','').replace('도',''));
+  const S=(k)=>sidos.reduce((a,[,v])=>a+(v[k]||0),0);
+  const AU=(k)=>sidos.reduce((a,[,v])=>a+(v[k]||0),0)/sidos.length;
+  document.getElementById('kov').innerHTML=[
+    {l:'4부문 고객수(2026)',v:(S('c26')/1e4).toFixed(0),u:'만명',kc:'var(--y26)',chg:`▲ ${g(S('c24'),S('c26'))}%`,rows:[{l:'2024',v:S('c24').toFixed(0),c:Y24},{l:'2025',v:S('c25').toFixed(0),c:Y25},{l:'2026',v:S('c26').toFixed(0),c:Y26}]},
+    {l:'4부문 매출액(2026)',v:(S('m26')/1e4).toFixed(0),u:'억원',kc:'var(--g)',chg:`▲ ${g(S('m24'),S('m26'))}%`,rows:[{l:'2024',v:S('m24').toFixed(0),c:Y24},{l:'2025',v:S('m25').toFixed(0),c:Y25},{l:'2026',v:S('m26').toFixed(0),c:Y26}]},
+    {l:'4부문 일매출(2026)',v:S('d26').toFixed(0),u:'백만원',kc:'var(--o)',chg:`▲ ${g(S('d24'),S('d26'))}%`,rows:[{l:'2024',v:S('d24').toFixed(0),c:Y24},{l:'2025',v:S('d25').toFixed(0),c:Y25},{l:'2026',v:S('d26').toFixed(0),c:Y26}]},
+    {l:'평균 객단가(2026)',v:AU('u26').toFixed(0),u:'원',kc:'var(--r)',chg:`▲ ${g(AU('u24'),AU('u26'))}%`,rows:[{l:'2024',v:AU('u24').toFixed(0),c:Y24},{l:'2025',v:AU('u25').toFixed(0),c:Y25},{l:'2026',v:AU('u26').toFixed(0),c:Y26}]},
+    {l:'관리 점포수',v:'2,877',u:'점포',kc:'var(--p)',chg:'충남·대전·세종·전북·광주·전남',rows:[{l:'시도',v:'6개',c:'#a78bfa'},{l:'시군구',v:'61개',c:'#a78bfa'},{l:'팀',v:'30개',c:'#a78bfa'}]},
+  ].map(k=>`<div class="kcard" style="--kc:${k.kc}"><div class="klb">${k.l}</div><div class="kv">${k.v}<span class="ku">${k.u}</span></div><div class="kd up">${k.chg}</div><div class="krow">${k.rows.map(r=>`<div class="ky"><div class="kyl">${r.l}</div><div class="kyv" style="color:${r.c}">${r.v}</div></div>`).join('')}</div></div>`).join('');
+  const labs=names;
+  const mk=(id,k24,k25,k26)=>{dc(id);CHS[id]=new Chart(document.getElementById(id),{type:'bar',data:{labels:labs,datasets:[bds('2024',sidos.map(([,v])=>v[k24]||0),Y24),bds('2025',sidos.map(([,v])=>v[k25]||0),Y25),bds('2026',sidos.map(([,v])=>v[k26]||0),Y26)]},options:{...BASE,layout:{padding:{top:22}},plugins:{...BASE.plugins,legend:{display:true,labels:{color:'#8b949e',boxWidth:9,font:{size:10}}}}}});};
+  mk('c-ov-c','c24','c25','c26');mk('c-ov-m','m24','m25','m26');mk('c-ov-d','d24','d25','d26');
+  dc('c-ov-u');CHS['c-ov-u']=new Chart(document.getElementById('c-ov-u'),{type:'line',data:{labels:labs,datasets:[{label:'2024',data:sidos.map(([,v])=>v.u24||0),borderColor:Y24,tension:.3,pointRadius:5,fill:false},{label:'2025',data:sidos.map(([,v])=>v.u25||0),borderColor:Y25,tension:.3,pointRadius:5,fill:false},{label:'2026',data:sidos.map(([,v])=>v.u26||0),borderColor:Y26,tension:.3,pointRadius:5,fill:false}]},options:{...BASE,plugins:{...BASE.plugins,legend:{display:true,labels:{color:'#8b949e',boxWidth:9,font:{size:10}}}},scales:{...BASE.scales,y:{...BASE.scales.y,ticks:{...BASE.scales.y.ticks,callback:v=>v.toLocaleString()+'원'}}}}});
+  dc('c-ov-g');CHS['c-ov-g']=new Chart(document.getElementById('c-ov-g'),{type:'bar',data:{labels:labs,datasets:[{label:'성장률',data:sidos.map(([,v])=>+g(v.c24||0,v.c26||0)),backgroundColor:sidos.map(([,v])=>+g(v.c24,v.c26)>12?Y26+'cc':Y24+'cc'),borderRadius:5}]},options:{...BASE,scales:{...BASE.scales,y:{...BASE.scales.y,ticks:{...BASE.scales.y.ticks,callback:v=>v+'%'}}}}});
+}
+
+// ── ③ 지역별
+let RE_M='c';
+function fmtRe(n){if(n.includes('FCS'))return '4-FCS';return n.replace(/(\d+)부문\)(\d+)지역/,'$1-$2지역');}
+function setReM(m,el){RE_M=m;document.querySelectorAll('#pnl-re .mbtn').forEach(b=>b.classList.remove('on'));el.classList.add('on');drawRe();}
+function drawRe(){
+  const {l,u,k:[k24,k25,k26]}=META[RE_M];const data=D.re4;const labs=data.map(r=>fmtRe(r.name));
+  document.getElementById('re-ctl').textContent=`지역별 ${l} (${u})`;
+  dc('c-re-bar');CHS['c-re-bar']=new Chart(document.getElementById('c-re-bar'),{type:'bar',data:{labels:labs,datasets:[bds('2024',data.map(r=>r[k24]||0),Y24),bds('2025',data.map(r=>r[k25]||0),Y25),bds('2026',data.map(r=>r[k26]||0),Y26)]},options:{...BASE,layout:{padding:{top:22}},plugins:{...BASE.plugins,legend:{display:true,labels:{color:'#8b949e',boxWidth:9,font:{size:10}}}}}});
+  dc('c-re-g');CHS['c-re-g']=new Chart(document.getElementById('c-re-g'),{type:'bar',data:{labels:labs,datasets:[{label:'성장률',data:data.map(r=>+g(r[k24]||0,r[k26]||0)),backgroundColor:data.map(r=>+g(r[k24],r[k26])>12?Y26+'cc':Y24+'cc'),borderRadius:4}]},options:{...BASE,scales:{...BASE.scales,y:{...BASE.scales.y,ticks:{...BASE.scales.y.ticks,callback:v=>v+'%'}}}}});
+  document.getElementById('re-tbl').innerHTML=`<thead><tr><th>지역</th><th class="nr">점포수</th><th class="nr">고객 '24</th><th class="nr">고객 '25</th><th class="nr">고객 '26</th><th class="nr">성장률</th><th class="nr">매출 '26(억)</th><th class="nr">일매출 '26(M)</th><th class="nr">객단가 '26</th></tr></thead><tbody>`+data.map(r=>{const gg=g(r[k24]||0,r[k26]||0);return`<tr><td><b>${fmtRe(r.name)}</b></td><td class="nr" style="color:var(--mu)">${r.stores||'-'}</td><td class="nr t24">${(r[k24]||0).toLocaleString()}</td><td class="nr t25">${(r[k25]||0).toLocaleString()}</td><td class="nr t26">${(r[k26]||0).toLocaleString()}</td><td class="nr"><span class="${gg>=0?'gp':'gn'}">${gg>=0?'▲':'▼'}${Math.abs(gg)}%</span></td><td class="nr t26">${r.m26||0}</td><td class="nr t26">${r.d26||0}</td><td class="nr t26">${(r.u26||0).toLocaleString()}</td></tr>`;}).join('')+'</tbody>';
+}
+function initRe(){drawRe();}
+
+// ── ④ 월별
+let MO_R='ALL';
+function setMoR(r,el){MO_R=r;document.querySelectorAll('#pnl-mo .fbtn').forEach(b=>b.classList.remove('on'));el.classList.add('on');drawMo();}
+function drawMo(){
+  const md=MO_R==='ALL'?D.mo4:(D.mo4_re[MO_R]||D.mo4);
+  const pc=ML.map((_,i)=>i<5?Y24:i<10?Y25:Y26);
+  const mkL=(id,data,color)=>{dc(id);CHS[id]=new Chart(document.getElementById(id),{type:'line',data:{labels:ML,datasets:[{data,borderColor:color,backgroundColor:color+'18',fill:true,tension:.35,pointRadius:4,pointBackgroundColor:pc,borderWidth:2}]},options:{...BASE}});};
+  mkL('c-mo-c',md.c,Y24);mkL('c-mo-m',md.m,Y25);mkL('c-mo-d',md.d,Y26);
+  dc('c-mo-yoy');CHS['c-mo-yoy']=new Chart(document.getElementById('c-mo-yoy'),{type:'bar',data:{labels:['1월','2월','3월','4월','5월'],datasets:[bds('2024',md.c.slice(0,5),Y24),bds('2025',md.c.slice(5,10),Y25),bds('2026',md.c.slice(10,15),Y26)]},options:{...BASE,layout:{padding:{top:18}},plugins:{...BASE.plugins,legend:{display:true,labels:{color:'#8b949e',boxWidth:9,font:{size:10}}}}}});
+}
+function initMo(){drawMo();}
+
+// ── ⑤ 지도
+let MY='26',MM='c';
+function setMY(y,el){MY=y;document.querySelectorAll('#pnl-mp .map-ctrl .fbtn').forEach(b=>b.classList.remove('on'));el.classList.add('on');renderMap();}
+function setMM(m,el){MM=m;document.querySelectorAll('#pnl-mp .map-ctrl .mbtn').forEach(b=>b.classList.remove('on'));el.classList.add('on');renderMap();}
+function getK(){return MM+MY;}
+function getV(d){return d[getK()]||0;}
+function clr(val,mn,mx){if(mx===mn)return '#2471a3';const t=(val-mn)/(mx-mn);if(t<0.15)return '#0d2b4a';if(t<0.35)return '#1a4a7a';if(t<0.55)return '#2471a3';if(t<0.75)return '#4fa3e0';return '#85c9f5';}
+function renderMap(){
+  const svg=document.getElementById('kmap');svg.innerHTML='';
+  const sidoVals=Object.values(D.sido4).map(d=>getV(d)).filter(v=>v>0);
+  const mn=Math.min(...sidoVals),mx=Math.max(...sidoVals);
+  const sggVals=Object.values(D.sgg4).map(d=>getV(d)).filter(v=>v>0);
+  const sgMn=Math.min(...sggVals),sgMx=Math.max(...sggVals);
+  Object.entries(SP).forEach(([name,path])=>{
+    const d=D.sido4[name];if(!d)return;
+    const el=document.createElementNS('http://www.w3.org/2000/svg','path');
+    el.setAttribute('d',path);el.setAttribute('fill',clr(getV(d),mn,mx));el.setAttribute('stroke','#30363d');el.setAttribute('stroke-width','0.6');el.setAttribute('class','rgn');el.style.cursor='pointer';
+    el.addEventListener('mouseenter',e=>showTT(e,name,d));el.addEventListener('mousemove',e=>moveTT(e));el.addEventListener('mouseleave',hideTT);el.addEventListener('click',()=>showSide(name,d));
+    svg.appendChild(el);
+  });
+  Object.entries(SC).forEach(([name,cen])=>{
+    const d=D.sido4[name];if(!d)return;
+    const nm=name.replace('특별자치도','').replace('광역시','').replace('특별자치시','').replace('도','');
+    [[nm,6,'rgba(230,237,243,.85)',cen[1]-5],[getV(d).toLocaleString(),5,'rgba(240,160,75,.95)',cen[1]+5]].forEach(([txt,sz,fill,y])=>{
+      const t=document.createElementNS('http://www.w3.org/2000/svg','text');t.setAttribute('x',cen[0]);t.setAttribute('y',y);t.setAttribute('text-anchor','middle');t.setAttribute('font-size',sz);t.setAttribute('fill',fill);t.setAttribute('font-weight','bold');t.setAttribute('pointer-events','none');t.textContent=txt;svg.appendChild(t);
+    });
+  });
+  Object.entries(GC).map(([key,cen])=>{const d=D.sgg4[key];return{key,cen,d,val:d?getV(d):0};}).filter(x=>x.d&&x.val>0).sort((a,b)=>b.val-a.val).forEach(({cen,d,val})=>{
+    const rr=Math.max(3,Math.min(18,(val/sgMx)*16+3));const col=clr(val,sgMn,sgMx);
+    const circle=document.createElementNS('http://www.w3.org/2000/svg','circle');circle.setAttribute('cx',cen[0]);circle.setAttribute('cy',cen[1]);circle.setAttribute('r',rr);circle.setAttribute('fill',col);circle.setAttribute('fill-opacity','0.85');circle.setAttribute('stroke','rgba(255,255,255,.35)');circle.setAttribute('stroke-width','0.5');circle.style.cursor='pointer';
+    circle.addEventListener('mouseenter',e=>showTT(e,d.sido+' '+d.sgg,d));circle.addEventListener('mousemove',e=>moveTT(e));circle.addEventListener('mouseleave',hideTT);circle.addEventListener('click',()=>showSide(d.sgg,d));
+    svg.appendChild(circle);
+    if(rr>7){const t=document.createElementNS('http://www.w3.org/2000/svg','text');t.setAttribute('x',cen[0]);t.setAttribute('y',cen[1]+3.5);t.setAttribute('text-anchor','middle');t.setAttribute('font-size','5');t.setAttribute('fill','#fff');t.setAttribute('font-weight','bold');t.setAttribute('pointer-events','none');t.textContent=d.sgg.replace('시','').replace('구','').replace('군','').replace('특별자치','').slice(0,4);svg.appendChild(t);}
+  });
+  renderLeg(mn,mx,UNITS[MM]);renderMpTbl();
+}
+function showTT(e,name,d){
+  const tt=document.getElementById('mtt');const unit=UNITS[MM];const v24=d[MM+'24']||0,v25=d[MM+'25']||0,v26=d[MM+'26']||0;const gg=v24>0?((v26-v24)/v24*100).toFixed(1):'-';
+  tt.innerHTML=`<div class="tt-nm">${name}</div><div class="tt-r"><span class="tt-l">2024</span><span class="tt-v t24">${v24.toLocaleString()} ${unit}</span></div><div class="tt-r"><span class="tt-l">2025</span><span class="tt-v t25">${v25.toLocaleString()} ${unit}</span></div><div class="tt-r"><span class="tt-l">2026</span><span class="tt-v t26">${v26.toLocaleString()} ${unit}</span></div><div class="tt-r"><span class="tt-l">24→26</span><span class="tt-v" style="color:${gg>=0?'#56d4a0':'#e05c7a'}">${gg!=='-'?(gg>=0?'▲':'▼')+Math.abs(gg)+'%':'N/A'}</span></div>${d.stores?`<div class="tt-r"><span class="tt-l">점포수</span><span class="tt-v">${d.stores}개</span></div>`:''}`;
+  tt.style.display='block';moveTT(e);document.querySelectorAll('.rgn').forEach(el=>el.style.opacity='.55');e.target.style.opacity='1';
+}
+function moveTT(e){const tt=document.getElementById('mtt');const wr=document.getElementById('msw').getBoundingClientRect();let x=e.clientX-wr.left+14,y=e.clientY-wr.top-10;if(x+230>wr.width)x=e.clientX-wr.left-240;if(y<0)y=8;tt.style.left=x+'px';tt.style.top=y+'px';}
+function hideTT(){document.getElementById('mtt').style.display='none';document.querySelectorAll('.rgn').forEach(el=>el.style.opacity='1');}
+function showSide(name,d){
+  document.getElementById('ms-hdr').innerHTML=`<span>📌</span><span>${name}</span>`;
+  const mets=[{k:'c',l:'고객수',u:'만명'},{k:'m',l:'매출액',u:'억원'},{k:'d',l:'일매출',u:'백만원'},{k:'u',l:'객단가',u:'원'}];
+  const maxV={c:Math.max(...Object.values(D.sgg4).map(v=>v.c26||0)),m:Math.max(...Object.values(D.sgg4).map(v=>v.m26||0)),d:Math.max(...Object.values(D.sgg4).map(v=>v.d26||0)),u:Math.max(...Object.values(D.sgg4).map(v=>v.u26||0))};
+  let html=`<div class="ms-card"><div class="ms-nm">📊 ${name} 실적</div>`;
+  mets.forEach(m=>{const va=d[m.k+'24']||0,vb=d[m.k+'25']||0,vc=d[m.k+'26']||0;const gg=va>0?((vc-va)/va*100).toFixed(1):'-';const pct=maxV[m.k]>0?(vc/maxV[m.k]*100):0;
+    html+=`<div class="ms-met"><div class="ms-ml">${m.l} (${m.u})</div><div class="ms-row"><div class="ms-item"><div class="ms-il">2024</div><div class="ms-iv t24">${va.toLocaleString()}</div></div><div class="ms-item"><div class="ms-il">2025</div><div class="ms-iv t25">${vb.toLocaleString()}</div></div><div class="ms-item"><div class="ms-il">2026</div><div class="ms-iv t26">${vc.toLocaleString()}</div></div></div><div style="display:flex;align-items:center;gap:8px;margin-top:5px"><div class="ms-gbar" style="flex:1"><div class="ms-gfill" style="width:${pct}%;background:var(--o)"></div></div><span style="font-size:10px;color:${gg>=0?'var(--g)':'var(--r)'};font-weight:700;white-space:nowrap">${gg!=='-'?(gg>=0?'▲':'▼')+Math.abs(gg)+'%':'N/A'}</span></div></div>`;
+  });
+  if(d.stores)html+=`<div style="font-size:11px;color:var(--mu);border-top:1px solid var(--bd);padding-top:8px;margin-top:4px">📦 관리 점포: <b style="color:var(--tx)">${d.stores}개</b></div>`;
+  html+='</div>';
+  const v24=d.c24||0,v26=d.c26||0;const gg=v24>0?((v26-v24)/v24*100).toFixed(1):null;const uG=d.u24>0?((d.u26-d.u24)/d.u24*100).toFixed(1):null;const mG=d.m24>0?((d.m26-d.m24)/d.m24*100).toFixed(1):null;let tips=[];
+  if(gg!==null){if(gg>14)tips.push(`✅ 고객수 +${gg}% — 4부문 평균(+14.3%) 상회.`);else if(gg<8)tips.push(`⚠️ 고객수 +${gg}% — 성장 둔화. 상권 포화 여부 점검 권장.`);else tips.push(`📊 고객수 +${gg}% — 안정적 성장 중.`);}
+  if(uG!==null&&uG>10)tips.push(`💹 객단가 +${uG}% 상승. 프리미엄 구매 트렌드 반영.`);
+  if(mG!==null&&gg!==null&&parseFloat(mG)>parseFloat(gg)*1.2)tips.push(`📈 매출(${mG}%)이 고객수(${gg}%)를 상회. 객단가 견인형 성장.`);
+  html+=`<div class="ms-card"><div class="ms-nm">💡 자동 인사이트</div><div class="ms-tip">${tips.join('<br><br>')||'안정적으로 운영 중입니다.'}</div></div>`;
+  document.getElementById('ms-body').innerHTML=html;
+}
+function renderLeg(mn,mx,unit){document.getElementById('mleg').innerHTML=`<div class="mlt">범례 (${unit})</div>${[['#85c9f5','최상위'],['#4fa3e0','상위'],['#2471a3','중위'],['#1a4a7a','하위'],['#0d2b4a','최하위']].map(([c,l])=>`<div class="mlrow"><div class="mlb" style="background:${c}"></div>${l}</div>`).join('')}<div style="color:var(--mu);font-size:9px;margin-top:4px">■ 시도 배경 ● 시군구 버블</div>`;}
+function renderMpTbl(){
+  const unit=UNITS[MM];const data=Object.entries(D.sido4).map(([k,v])=>({name:k,v24:v[MM+'24']||0,v25:v[MM+'25']||0,v26:v[MM+'26']||0,stores:v.stores})).sort((a,b)=>b.v26-a.v26);
+  document.getElementById('mp-tbl-t').textContent=`시도별 실적 순위 (${unit})`;
+  document.getElementById('mp-tbl').innerHTML=`<thead><tr><th>순위</th><th>시도</th><th class="nr">2024</th><th class="nr">2025</th><th class="nr">2026</th><th class="nr">성장률</th><th class="nr">점포수</th></tr></thead><tbody>`+data.map((d,i)=>{const gg=d.v24>0?((d.v26-d.v24)/d.v24*100).toFixed(1):'-';return`<tr><td style="color:var(--mu)">${i+1}</td><td><b>${d.name}</b></td><td class="nr t24">${d.v24.toLocaleString()}</td><td class="nr t25">${d.v25.toLocaleString()}</td><td class="nr t26">${d.v26.toLocaleString()}</td><td class="nr"><span class="${gg>=0?'gp':'gn'}">${gg!=='-'?(gg>=0?'▲':'▼')+Math.abs(gg)+'%':'-'}</span></td><td class="nr" style="color:var(--mu)">${d.stores||'-'}</td></tr>`;}).join('')+'</tbody>';
+}
+function initMp(){renderMap();}
+
+// ── ⑥ 인사이트
+function initIns(){
+  const re=D.re4.filter(r=>!r.name.includes('FCS'));const sgg=Object.values(D.sgg4).sort((a,b)=>b.c26-a.c26);
+  const tC24=Object.values(D.sido4).reduce((a,v)=>a+(v.c24||0),0),tC26=Object.values(D.sido4).reduce((a,v)=>a+(v.c26||0),0);
+  const ins=[
+    {i:'🏅',t:`천안시 4부문 고객수 1위`,x:`4부문 시군구 중 천안시 ${sgg[0]?.c26||0}만명(2026)으로 최대. 전체의 ${(((sgg[0]?.c26||0)/tC26)*100).toFixed(1)}% 차지.`},
+    {i:'🚀',t:`4부문 고객 +${g(tC24,tC26)}% 성장`,x:`2024→2026 고객수 ${tC24.toFixed(0)}만→${tC26.toFixed(0)}만명. 매출 증가율이 고객수를 상회하는 객단가 견인형 성장.`},
+    {i:'💹',t:'전 지역 객단가 우상향',x:'4부문 내 모든 지역에서 객단가 꾸준 상승. 고물가 환경에서 구매단가 증가가 매출 성장 주도.'},
+    {i:'📅',t:'3~4월 성수기 집중',x:'매년 3~4월 고객수·매출 정점 형성. 봄 시즌 집중 판촉·재고 준비와 5월 이후 이탈 방어 전략 필요.'},
+    {i:'🌏',t:'충남 최대 상권',x:`충남 점포수(850개)·매출 4부문 내 최대. 천안·아산 수도권 인접 효과로 성장 지속.`},
+    {i:'⚡',t:'세종시 고성장',x:'세종시 절대 규모는 작지만 인구 유입으로 성장률 상위권. 신규 점포 확장 우선 검토 지역.'},
+    {i:'🎯',t:'전주시 전북 거점',x:'전북 내 전주시 압도적 1위. 익산·군산 거점 확대 전략 병행 필요.'},
+    {i:'📦',t:'FCS 채널 고성장',x:'4부문 FCS(기업·특수) 채널 성장률 우위. 기업 입점·거점 확대가 핵심 성장 동인.'},
+  ];
+  document.getElementById('igrid').innerHTML=ins.map(i=>`<div class="ic"><div class="ii">${i.i}</div><div><div class="itl">${i.t}</div><div class="itx">${i.x}</div></div></div>`).join('');
+  const labs=re.map(r=>r.name.replace(/(\d+)부문\)(\d+)지역/,'$1-$2지역'));
+  dc('c-ins-u');CHS['c-ins-u']=new Chart(document.getElementById('c-ins-u'),{type:'line',data:{labels:labs,datasets:[{label:'2024',data:re.map(r=>r.u24||0),borderColor:Y24,tension:.3,pointRadius:5,fill:false},{label:'2025',data:re.map(r=>r.u25||0),borderColor:Y25,tension:.3,pointRadius:5,fill:false},{label:'2026',data:re.map(r=>r.u26||0),borderColor:Y26,tension:.3,pointRadius:5,fill:false}]},options:{...BASE,plugins:{...BASE.plugins,legend:{display:true,labels:{color:'#8b949e',boxWidth:9,font:{size:10}}}},scales:{...BASE.scales,y:{...BASE.scales.y,ticks:{...BASE.scales.y.ticks,callback:v=>v.toLocaleString()+'원'}}}}});
+  const top15=sgg.slice(0,15);
+  dc('c-ins-top');CHS['c-ins-top']=new Chart(document.getElementById('c-ins-top'),{type:'bar',data:{labels:top15.map(d=>d.sgg),datasets:[{label:'2024',data:top15.map(d=>d.c24||0),backgroundColor:Y24+'bb',borderRadius:3},{label:'2026',data:top15.map(d=>d.c26||0),backgroundColor:Y26+'bb',borderRadius:3}]},options:{...BASE,layout:{padding:{top:20}},plugins:{...BASE.plugins,legend:{display:true,labels:{color:'#8b949e',boxWidth:9,font:{size:10}}}}}});
+}
+
+initGall();
+</script>
+</body>
+</html>
